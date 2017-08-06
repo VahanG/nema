@@ -1,6 +1,6 @@
 const express = require('express');
 const app = express();
-
+const bodyParser = require('body-parser');
 const cors = require('cors');
 const mongoose = require('mongoose');
 
@@ -13,16 +13,23 @@ if (!process.env.AUTH0_DOMAIN || !process.env.AUTH0_AUDIENCE) {
 }**/
 
 app.use(cors());
+/*
+app.use(function (req, res, next) {
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, DELETE, PUT');
+  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
+  next();
+});
+*/
 
 app.use(authorize);
 
+app.use(bodyParser.urlencoded({
+  extended: true
+}));
+app.disable('etag'); //Disable Request Cache
+app.use(bodyParser.json());
 
-app.post('/user',function(req,res){
-  console.log(req);
-  res.json({
-    message:'/user'
-  })
-})
 
 
 app.get('/api/public', function(req, res) {
@@ -37,6 +44,9 @@ app.get('/api/private', authorize, function(req, res) {
     message: 'Hello from a private endpoint! You need to be authenticated and have a scope of read:messages to see this.'
   });
 });
+
+app.use('/user',require('./controllers/user'));
+app.use('/pages',require('./controllers/pages'));
 
 app.listen(3001);
 console.log('Listening on http://localhost:3001');
